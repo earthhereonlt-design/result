@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Telegram bot for IELTS results",
   "scripts": {
-    "dev": "pip install -r requirements.txt && playwright install chromium && python3 app.py",
+    "dev": "pip3 install --no-cache-dir -r requirements.txt && python3 -m playwright install chromium && python3 app.py",
     "start": "python3 app.py"
   }
 }
