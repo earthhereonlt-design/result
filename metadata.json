@@ -1,0 +1,5 @@
+{
+  "name": "IELTS Result Bot",
+  "description": "A Telegram bot that automatically checks IELTS results from IDP every 3 hours and sends screenshots.",
+  "requestFramePermissions": []
+}

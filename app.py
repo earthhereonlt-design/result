@@ -26,6 +26,9 @@ logger = logging.getLogger(__name__)
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
+# Global variable to store chat ID if not provided via env
+target_chat_id = CHAT_ID
+
 async def delete_message_after(chat_id: int, message_id: int, delay: int = 600):
     await asyncio.sleep(delay)
     try:
@@ -84,10 +87,12 @@ async def send_update(chat_id, success, screenshot, timestamp, message):
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
+    global target_chat_id
+    target_chat_id = message.chat.id
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="Check Result Now", callback_data="check_now")]
     ])
-    await message.answer("IELTS Result Bot is active.", reply_markup=kb)
+    await message.answer(f"IELTS Result Bot is active.\nChat ID: {target_chat_id}\nI will check results every 3 hours.", reply_markup=kb)
 
 @dp.callback_query(lambda c: c.data == "check_now")
 async def process_callback_check_now(callback_query: types.CallbackQuery):
@@ -97,9 +102,9 @@ async def process_callback_check_now(callback_query: types.CallbackQuery):
 
 async def scheduler():
     while True:
-        if CHAT_ID:
+        if target_chat_id:
             success, screenshot, timestamp, msg = await check_result()
-            await send_update(CHAT_ID, success, screenshot, timestamp, msg)
+            await send_update(target_chat_id, success, screenshot, timestamp, msg)
         await asyncio.sleep(3 * 3600)
 
 async def handle_ping(request):
@@ -107,16 +112,18 @@ async def handle_ping(request):
 
 async def main():
     # HTTP server for ping
+    port = int(os.getenv("PORT", 3000))
     app = web.Application()
     app.router.add_get("/", handle_ping)
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", 3000)
+    site = web.TCPSite(runner, "0.0.0.0", port)
     
     # Start tasks
     asyncio.create_task(site.start())
     asyncio.create_task(scheduler())
     
+    logger.info(f"Starting bot and HTTP server on port {port}")
     await dp.start_polling(bot)
 
 if __name__ == "__main__":

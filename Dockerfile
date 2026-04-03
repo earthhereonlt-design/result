@@ -1,34 +1,21 @@
-FROM python:3.11-slim
+FROM mcr.microsoft.com/playwright/python:v1.42.0-jammy
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies (minimal extra for bot)
 RUN apt-get update && apt-get install -y \
     wget \
     gnupg \
-    libnss3 \
-    libatk-bridge2.0-0 \
-    libcups2 \
-    libdrm2 \
-    libxkbcommon0 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxrandr2 \
-    libgbm1 \
-    libasound2 \
-    libpango-1.0-0 \
-    libcairo2 \
-    libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-# Install Playwright browsers
+# Install Playwright browsers (already in image, but ensuring chromium is ready)
 RUN playwright install chromium
-RUN playwright install-deps
 
 # Copy application code
 COPY app.py .
@@ -37,4 +24,4 @@ COPY app.py .
 EXPOSE 3000
 
 # Run the application
-CMD ["python", "app.py"]
+CMD ["python3", "app.py"]
