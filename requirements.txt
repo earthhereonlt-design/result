@@ -1,0 +1,6 @@
+aiogram
+playwright
+aiohttp
+asyncio
+datetime
+logging
